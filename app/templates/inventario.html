@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% set title = "Inventário • Sistema Patrimonial" %}
+{% block content %}
+<div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
+  <div>
+    <h1 class="page-title mb-1">Inventário</h1>
+    <div class="text-muted">Filtre e exporte a lista de bens.</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-orange" href="{{ url_for('main.inventario_exportar') }}">Exportar CSV</a>
+  </div>
+</div>
+
+<div class="card panel-card mb-3">
+  <div class="p-3">
+    <form class="row g-2" method="get">
+      <div class="col-12 col-lg-8">
+        <input class="form-control" name="q" value="{{ q }}" placeholder="Buscar por código, barras, descrição, localização, responsável...">
+      </div>
+      <div class="col-8 col-lg-3">
+        <select class="form-select" name="status">
+          <option value="">Status (todos)</option>
+          <option value="ativo" {{ 'selected' if status=='ativo' else '' }}>Ativo</option>
+          <option value="manutencao" {{ 'selected' if status=='manutencao' else '' }}>Manutenção</option>
+          <option value="baixado" {{ 'selected' if status=='baixado' else '' }}>Baixado</option>
+        </select>
+      </div>
+      <div class="col-4 col-lg-1 d-grid">
+        <button class="btn btn-outline-orange" type="submit">Ok</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card panel-card">
+  <div class="table-responsive">
+    <table class="table table-custom mb-0">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Descrição</th>
+          <th>Localização</th>
+          <th>Status</th>
+          <th>Últ. inventário</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in assets %}
+          <tr>
+            <td class="fw-semibold">{{ a.internal_code }}</td>
+            <td>
+              <div class="fw-semibold">{{ a.description }}</div>
+              <div class="text-muted small">Barras: {{ a.barcode }}</div>
+            </td>
+            <td>{{ a.location or "-" }}</td>
+            <td>
+              {% if a.status == 'ativo' %}
+                <span class="badge badge-soft-success">Ativo</span>
+              {% elif a.status == 'manutencao' %}
+                <span class="badge badge-soft-warning">Manutenção</span>
+              {% else %}
+                <span class="badge badge-soft-muted">Baixado</span>
+              {% endif %}
+            </td>
+            <td class="text-muted">{{ a.last_inventory_date.strftime("%d/%m/%Y") if a.last_inventory_date else "-" }}</td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-orange" href="{{ url_for('main.patrimonio_edit', asset_id=a.id) }}">Abrir</a>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6" class="text-muted p-4">Nenhum item.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

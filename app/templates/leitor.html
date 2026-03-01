@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% set title = "Leitor • Sistema Patrimonial" %}
+{% block content %}
+<div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
+  <div>
+    <h1 class="page-title mb-1">Leitor (Código de Barras / QR)</h1>
+    <div class="text-muted">Leitores USB funcionam como teclado: clique no campo e escaneie.</div>
+  </div>
+  <a class="btn btn-outline-orange" href="{{ url_for('main.patrimonio_new') }}">Cadastrar manualmente</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-7">
+    <div class="card panel-card">
+      <div class="panel-title">Escanear etiqueta</div>
+      <div class="p-3">
+        <form method="post" action="{{ url_for('main.leitor_processar') }}" id="scanForm">
+          <label class="form-label">Código</label>
+          <input class="form-control form-control-lg" name="code" id="codeInput" placeholder="Leia aqui..." autofocus>
+          <div class="text-muted small mt-2">
+            Dica: muitos leitores enviam <b>Enter</b> no final. Este campo auto-envia ao detectar Enter.
+          </div>
+          <button class="btn btn-orange mt-3" type="submit">Buscar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-5">
+    <div class="card panel-card">
+      <div class="panel-title">Como funciona</div>
+      <div class="p-3">
+        <ol class="text-muted mb-0">
+          <li>Você escaneia a etiqueta</li>
+          <li>O sistema procura o patrimônio pelo código</li>
+          <li>Se existir: abre direto para editar</li>
+          <li>Se não existir: abre o cadastro com o código preenchido</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const input = document.getElementById("codeInput");
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      document.getElementById("scanForm").submit();
+    }
+  });
+</script>
+{% endblock %}

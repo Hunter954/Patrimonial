@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% set title = "Patrimônio • Sistema Patrimonial" %}
+{% block content %}
+<div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
+  <div>
+    <h1 class="page-title mb-1">Patrimônio</h1>
+    <div class="text-muted">Lista e gestão dos bens cadastrados.</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-orange" href="{{ url_for('main.patrimonio_new') }}">+ Novo Bem</a>
+  </div>
+</div>
+
+<div class="card panel-card mb-3">
+  <div class="p-3">
+    <form class="row g-2" method="get">
+      <div class="col-12 col-lg-5">
+        <input class="form-control" name="q" value="{{ q }}" placeholder="Buscar por código, barras, descrição, série...">
+      </div>
+      <div class="col-6 col-lg-3">
+        <select class="form-select" name="status">
+          <option value="">Status (todos)</option>
+          <option value="ativo" {{ 'selected' if status=='ativo' else '' }}>Ativo</option>
+          <option value="manutencao" {{ 'selected' if status=='manutencao' else '' }}>Manutenção</option>
+          <option value="baixado" {{ 'selected' if status=='baixado' else '' }}>Baixado</option>
+        </select>
+      </div>
+      <div class="col-6 col-lg-3">
+        <select class="form-select" name="location">
+          <option value="">Localização (todas)</option>
+          {% for loc in locations %}
+            <option value="{{ loc }}" {{ 'selected' if location==loc else '' }}>{{ loc }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-lg-1 d-grid">
+        <button class="btn btn-outline-orange" type="submit">Filtrar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card panel-card">
+  <div class="table-responsive">
+    <table class="table table-custom mb-0">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Descrição</th>
+          <th>Localização</th>
+          <th>Responsável</th>
+          <th>Status</th>
+          <th class="text-end">Valor</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in assets %}
+          <tr>
+            <td class="fw-semibold">{{ a.internal_code }}</td>
+            <td>
+              <div class="fw-semibold">{{ a.description }}</div>
+              <div class="text-muted small">Barras: {{ a.barcode }} • Série: {{ a.serial_number or "-" }}</div>
+            </td>
+            <td>{{ a.location or "-" }}</td>
+            <td>{{ a.responsible or "-" }}</td>
+            <td>
+              {% if a.status == 'ativo' %}
+                <span class="badge badge-soft-success">Ativo</span>
+              {% elif a.status == 'manutencao' %}
+                <span class="badge badge-soft-warning">Manutenção</span>
+              {% else %}
+                <span class="badge badge-soft-muted">Baixado</span>
+              {% endif %}
+            </td>
+            <td class="text-end">{{ currency_br(a.purchase_value) }}</td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-orange" href="{{ url_for('main.patrimonio_edit', asset_id=a.id) }}">Abrir</a>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="7" class="text-muted p-4">Nenhum item encontrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

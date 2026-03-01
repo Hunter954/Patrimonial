@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% set title = "Relatórios • Sistema Patrimonial" %}
+{% block content %}
+<div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
+  <div>
+    <h1 class="page-title mb-1">Relatórios</h1>
+    <div class="text-muted">Visões rápidas para contabilidade e operação.</div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    <div class="card panel-card">
+      <div class="panel-title">Patrimônio por setor</div>
+      <div class="p-3">
+        <div class="d-flex flex-column gap-2">
+          {% for k, v in by_cc.items() %}
+            <div class="d-flex justify-content-between">
+              <div class="text-muted">{{ k }}</div>
+              <div class="fw-semibold">{{ v }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card panel-card">
+      <div class="panel-title">Bens em manutenção</div>
+      <div class="p-3">
+        {% if maintenance %}
+          <div class="d-flex flex-column gap-2">
+            {% for a in maintenance %}
+              <a class="report-link" href="{{ url_for('main.patrimonio_edit', asset_id=a.id) }}">
+                <span class="fw-semibold">{{ a.internal_code }}</span> — {{ a.description }}
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-muted">Nenhum item em manutenção.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card panel-card">
+      <div class="panel-title">Mais depreciados (top 10)</div>
+      <div class="table-responsive">
+        <table class="table table-custom mb-0">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Descrição</th>
+              <th class="text-end">Depreciação acumulada</th>
+              <th class="text-end">Valor atual</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a, acc, cur in top_depreciated %}
+              <tr>
+                <td class="fw-semibold">{{ a.internal_code }}</td>
+                <td>{{ a.description }}</td>
+                <td class="text-end">{{ currency_br(acc) }}</td>
+                <td class="text-end">{{ currency_br(cur) }}</td>
+                <td class="text-end">
+                  <a class="btn btn-sm btn-outline-orange" href="{{ url_for('main.patrimonio_edit', asset_id=a.id) }}">Abrir</a>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="5" class="text-muted p-4">Sem dados.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

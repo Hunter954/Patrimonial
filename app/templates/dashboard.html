@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% set title = "Dashboard • Sistema Patrimonial" %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-12 col-xl-3">
+    <div class="card kpi-card">
+      <div class="kpi-icon">📦</div>
+      <div>
+        <div class="kpi-label">Total de Bens</div>
+        <div class="kpi-value">{{ "{:,}".format(total_assets).replace(",", ".") }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-3">
+    <div class="card kpi-card">
+      <div class="kpi-icon">💰</div>
+      <div>
+        <div class="kpi-label">Valor do Patrimônio</div>
+        <div class="kpi-value">{{ currency_br(total_value) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-3">
+    <div class="card kpi-card">
+      <div class="kpi-icon">🪙</div>
+      <div>
+        <div class="kpi-label">Valor Depreciado</div>
+        <div class="kpi-value">{{ currency_br(total_depreciated) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-3">
+    <div class="card kpi-card">
+      <div class="kpi-icon">🛠️</div>
+      <div>
+        <div class="kpi-label">Em Manutenção</div>
+        <div class="kpi-value"><span class="text-orange">{{ maintenance_count }}</span> Itens</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-12 col-lg-7">
+    <div class="card panel-card">
+      <div class="panel-title">Patrimônio por Centro de Custo</div>
+      <div class="p-3">
+        <canvas id="barCC" height="110"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-5">
+    <div class="card panel-card">
+      <div class="panel-title">Status dos Bens</div>
+      <div class="p-3 d-flex gap-4 align-items-center">
+        <div style="width: 230px; height: 230px;">
+          <canvas id="donutStatus"></canvas>
+        </div>
+        <div class="flex-grow-1">
+          <div class="legend-item"><span class="dot dot-orange"></span> Ativos <span class="ms-auto fw-semibold">{{ donut.values[0] }}</span></div>
+          <div class="legend-item"><span class="dot dot-yellow"></span> Em Manutenção <span class="ms-auto fw-semibold">{{ donut.values[1] }}</span></div>
+          <div class="legend-item"><span class="dot dot-gray"></span> Baixados <span class="ms-auto fw-semibold">{{ donut.values[2] }}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-12 col-lg-7">
+    <div class="card panel-card">
+      <div class="panel-title d-flex align-items-center justify-content-between">
+        <span>Últimas Movimentações</span>
+        <a class="btn btn-sm btn-outline-orange" href="{{ url_for('main.patrimonio_list') }}">Ver patrimônio</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-custom mb-0">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Bem</th>
+              <th>Ação</th>
+              <th>Usuário</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in recent_moves %}
+            <tr>
+              <td class="text-muted">{{ m.created_at.strftime("%d/%m") }}</td>
+              <td class="fw-semibold">
+                <a class="link-dark text-decoration-none" href="{{ url_for('main.patrimonio_edit', asset_id=m.asset_id) }}">
+                  {{ m.asset.description }}
+                </a>
+              </td>
+              <td>{{ m.action }}</td>
+              <td class="fw-semibold">{{ m.user_name or "Sistema" }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-muted p-4">Sem movimentações ainda.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-5">
+    <div class="card panel-card">
+      <div class="panel-title">Alertas</div>
+      <div class="p-3">
+        {% if alerts %}
+          <div class="d-flex flex-column gap-2">
+            {% for level, txt in alerts %}
+              <div class="alert-row">
+                <span class="alert-icon">⚠️</span>
+                <span class="fw-semibold text-orange me-2">{{ loop.index }}</span>
+                <span class="text-muted">{{ txt }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-muted">Sem alertas.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const ccLabels = {{ cost_labels|tojson }};
+  const ccValues = {{ cost_values|tojson }};
+
+  new Chart(document.getElementById('barCC'), {
+    type: 'bar',
+    data: {
+      labels: ccLabels,
+      datasets: [{
+        label: 'Quantidade',
+        data: ccValues,
+        borderWidth: 0,
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false }},
+      scales: {
+        x: { grid: { display: false }},
+        y: { beginAtZero: true, ticks: { precision: 0 } }
+      }
+    }
+  });
+
+  const donut = {{ donut|tojson }};
+  new Chart(document.getElementById('donutStatus'), {
+    type: 'doughnut',
+    data: {
+      labels: donut.labels,
+      datasets: [{
+        data: donut.values,
+        borderWidth: 0,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      cutout: '62%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: true }
+      }
+    }
+  });
+</script>
+{% endblock %}

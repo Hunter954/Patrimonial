@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% set title = ("Editar Bem" if asset else "Novo Bem") ~ " • Sistema Patrimonial" %}
+{% block content %}
+<div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
+  <div>
+    <h1 class="page-title mb-1">{{ "Editar Bem" if asset else "Novo Bem" }}</h1>
+    <div class="text-muted">
+      {% if asset %}
+        {{ asset.internal_code }} • Barras: {{ asset.barcode }}
+      {% else %}
+        Preencha os dados para cadastrar um novo item.
+      {% endif %}
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-orange" href="{{ url_for('main.patrimonio_list') }}">Voltar</a>
+    {% if asset %}
+      <a class="btn btn-outline-orange" href="{{ url_for('main.etiqueta_png', asset_id=asset.id) }}" target="_blank">Gerar etiqueta (PNG)</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-8">
+    <div class="card panel-card">
+      <div class="panel-title">Dados do patrimônio</div>
+      <div class="p-3">
+        <form method="post">
+          {% if not asset %}
+          <div class="row g-2">
+            <div class="col-12 col-md-6">
+              <label class="form-label">Código de barras *</label>
+              <input class="form-control" name="barcode" value="{{ preset_barcode or '' }}" placeholder="Ex: 789000000001" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Status</label>
+              <select class="form-select" name="status">
+                <option value="ativo">Ativo</option>
+                <option value="manutencao">Manutenção</option>
+                <option value="baixado">Baixado</option>
+              </select>
+            </div>
+          </div>
+          <hr class="my-3">
+          {% endif %}
+
+          <div class="row g-2">
+            <div class="col-12">
+              <label class="form-label">Descrição *</label>
+              <input class="form-control" name="description" value="{{ asset.description if asset else '' }}" required>
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label">Marca</label>
+              <input class="form-control" name="brand" value="{{ asset.brand if asset else '' }}">
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Modelo</label>
+              <input class="form-control" name="model" value="{{ asset.model if asset else '' }}">
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Número de série</label>
+              <input class="form-control" name="serial_number" value="{{ asset.serial_number if asset else '' }}">
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label">Valor de compra (R$)</label>
+              <input class="form-control" name="purchase_value" value="{{ asset.purchase_value if asset else '0' }}" placeholder="5000,00">
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Data de aquisição</label>
+              <input type="date" class="form-control" name="purchase_date" value="{{ asset.purchase_date.isoformat() if asset else '' }}">
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Centro de custo</label>
+              <input class="form-control" name="cost_center" value="{{ asset.cost_center if asset else '' }}" placeholder="TI / Produção / Vendas...">
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label">Localização</label>
+              <input class="form-control" name="location" value="{{ asset.location if asset else '' }}" placeholder="Sala / Setor / Unidade...">
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Responsável</label>
+              <input class="form-control" name="responsible" value="{{ asset.responsible if asset else '' }}">
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label">Vida útil (anos)</label>
+              <input class="form-control" name="useful_life_years" value="{{ asset.useful_life_years if asset else '5' }}">
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Taxa de depreciação (%/ano)</label>
+              <input class="form-control" name="depreciation_rate" value="{{ asset.depreciation_rate if asset else '20' }}">
+            </div>
+            {% if asset %}
+            <div class="col-12 col-md-4">
+              <label class="form-label">Status</label>
+              <select class="form-select" name="status">
+                <option value="ativo" {{ 'selected' if asset.status=='ativo' else '' }}>Ativo</option>
+                <option value="manutencao" {{ 'selected' if asset.status=='manutencao' else '' }}>Manutenção</option>
+                <option value="baixado" {{ 'selected' if asset.status=='baixado' else '' }}>Baixado</option>
+              </select>
+            </div>
+            {% endif %}
+          </div>
+
+          {% if asset %}
+          <div class="d-flex flex-wrap gap-2 align-items-center mt-3">
+            <button class="btn btn-orange" type="submit">Salvar alterações</button>
+            <button class="btn btn-outline-orange" name="mark_inventoried" value="1" type="submit">Marcar como inventariado hoje</button>
+          </div>
+          {% else %}
+          <div class="mt-3">
+            <button class="btn btn-orange" type="submit">Cadastrar bem</button>
+          </div>
+          {% endif %}
+        </form>
+
+        {% if asset %}
+        <form action="{{ url_for('main.patrimonio_deactivate', asset_id=asset.id) }}" method="post" class="mt-3">
+          <button class="btn btn-outline-dark" type="submit">Baixar bem</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-4">
+    {% if asset %}
+    <div class="card panel-card mb-3">
+      <div class="panel-title">Depreciação (linear)</div>
+      <div class="p-3">
+        <div class="d-flex justify-content-between mb-2">
+          <div class="text-muted">Valor original</div>
+          <div class="fw-semibold">{{ currency_br(asset.purchase_value) }}</div>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <div class="text-muted">Depreciação acumulada</div>
+          <div class="fw-semibold">{{ currency_br(dep.accumulated) }}</div>
+        </div>
+        <div class="d-flex justify-content-between mb-3">
+          <div class="text-muted">Valor atual</div>
+          <div class="fw-semibold">{{ currency_br(dep.current) }}</div>
+        </div>
+        <div class="progress" role="progressbar" aria-valuenow="{{ dep.percent|round(0) }}" aria-valuemin="0" aria-valuemax="100">
+          <div class="progress-bar" style="width: {{ dep.percent }}%"></div>
+        </div>
+        <div class="text-muted small mt-2">{{ dep.percent|round(1) }}% da vida útil utilizada</div>
+
+        <hr class="my-3">
+        <div class="mt-2 text-center">
+          <img class="barcode-preview" src="{{ url_for('main.etiqueta_png', asset_id=asset.id) }}" alt="barcode">
+          <div class="small text-muted mt-1">{{ asset.barcode }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card panel-card">
+      <div class="panel-title">Últimas movimentações</div>
+      <div class="p-3">
+        <div class="d-flex flex-column gap-2">
+          {% for m in moves %}
+            <div class="move-row">
+              <div class="move-title">{{ m.action }}</div>
+              <div class="move-meta">{{ m.created_at.strftime("%d/%m/%Y %H:%M") }} • {{ m.user_name or "Sistema" }}</div>
+              {% if m.details %}
+                <div class="move-details text-muted">{{ m.details }}</div>
+              {% endif %}
+            </div>
+          {% else %}
+            <div class="text-muted">Sem movimentações.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="card panel-card">
+      <div class="panel-title">Dica</div>
+      <div class="p-3 text-muted">
+        Você também pode cadastrar pelo <b>Leitor</b>. Ao ler um código:
+        <ul class="mt-2 mb-0">
+          <li>se existir, abre direto no item</li>
+          <li>se não existir, abre a tela de cadastro já com o código preenchido</li>
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
