@@ -4,7 +4,7 @@
 <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
   <div>
     <h1 class="page-title mb-1">Leitor (Código de Barras / QR)</h1>
-    <div class="text-muted">Leitores USB funcionam como teclado: clique no campo e escaneie.</div>
+    <div class="text-muted">No PC use leitor USB. No celular, clique em <b>Usar câmera</b>.</div>
   </div>
   <a class="btn btn-outline-orange" href="{{ url_for('main.patrimonio_new') }}">Cadastrar manualmente</a>
 </div>
@@ -12,16 +12,29 @@
 <div class="row g-3">
   <div class="col-12 col-lg-7">
     <div class="card panel-card">
-      <div class="panel-title">Escanear etiqueta</div>
+      <div class="panel-title d-flex align-items-center justify-content-between">
+        <span>Escanear etiqueta</span>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-orange" type="button" id="btnStartCam">📷 Usar câmera</button>
+          <button class="btn btn-sm btn-outline-dark d-none" type="button" id="btnStopCam">Parar</button>
+        </div>
+      </div>
       <div class="p-3">
         <form method="post" action="{{ url_for('main.leitor_processar') }}" id="scanForm">
           <label class="form-label">Código</label>
           <input class="form-control form-control-lg" name="code" id="codeInput" placeholder="Leia aqui..." autofocus>
           <div class="text-muted small mt-2">
-            Dica: muitos leitores enviam <b>Enter</b> no final. Este campo auto-envia ao detectar Enter.
+            <div><b>Leitor USB:</b> clique no campo e escaneie (muitos leitores enviam <b>Enter</b> no final).</div>
+            <div class="mt-1"><b>Celular:</b> clique em <b>Usar câmera</b> e aponte para o QR/código de barras.</div>
           </div>
           <button class="btn btn-orange mt-3" type="submit">Buscar</button>
         </form>
+
+        <div class="mt-3 d-none" id="camWrap">
+          <div class="text-muted small mb-2">Permita o acesso à câmera quando o navegador pedir.</div>
+          <div id="reader" class="qr-reader"></div>
+          <div class="text-muted small mt-2" id="camHint"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -31,7 +44,7 @@
       <div class="panel-title">Como funciona</div>
       <div class="p-3">
         <ol class="text-muted mb-0">
-          <li>Você escaneia a etiqueta</li>
+          <li>Você escaneia a etiqueta (USB ou câmera)</li>
           <li>O sistema procura o patrimônio pelo código</li>
           <li>Se existir: abre direto para editar</li>
           <li>Se não existir: abre o cadastro com o código preenchido</li>
@@ -43,7 +56,9 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
 <script>
+  // USB scanners usually "type" then send Enter
   const input = document.getElementById("codeInput");
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
@@ -51,5 +66,125 @@
       document.getElementById("scanForm").submit();
     }
   });
+
+  const btnStart = document.getElementById("btnStartCam");
+  const btnStop = document.getElementById("btnStopCam");
+  const camWrap = document.getElementById("camWrap");
+  const camHint = document.getElementById("camHint");
+
+  let qr = null;
+  let running = false;
+
+  function isMobile() {
+    return /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent);
+  }
+
+  // If browser doesn't support camera, hide button
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    btnStart.classList.add("d-none");
+  } else {
+    // On desktop keep visible too (some people prefer webcam)
+    if (isMobile()) {
+      btnStart.classList.remove("d-none");
+    }
+  }
+
+  async function startCamera() {
+    if (running) return;
+    camWrap.classList.remove("d-none");
+    btnStop.classList.remove("d-none");
+    btnStart.classList.add("d-none");
+
+    camHint.textContent = "Inicializando câmera…";
+
+    try {
+      if (!qr) qr = new Html5Qrcode("reader");
+
+      const formats = [];
+      if (window.Html5QrcodeSupportedFormats) {
+        formats.push(
+          Html5QrcodeSupportedFormats.QR_CODE,
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E
+        );
+      }
+
+      await qr.start(
+        { facingMode: "environment" },
+        {
+          fps: 12,
+          qrbox: { width: 250, height: 250 },
+          formatsToSupport: formats.length ? formats : undefined
+        },
+        (decodedText) => {
+          // Found! Put into input and submit the existing flow
+          input.value = (decodedText || "").trim();
+          if (input.value) {
+            camHint.textContent = "Código lido! Enviando…";
+            stopCamera(true);
+            document.getElementById("scanForm").submit();
+          }
+        },
+        () => {}
+      );
+
+      running = true;
+      camHint.textContent = "Aponte para o código. Segure firme para focar.";
+    } catch (err) {
+      camHint.textContent = "Não foi possível abrir a câmera. Verifique permissão / HTTPS.";
+      console.error(err);
+      btnStart.classList.remove("d-none");
+      btnStop.classList.add("d-none");
+    }
+  }
+
+  async function stopCamera(silent=false) {
+    if (!qr || !running) {
+      if (!silent) camWrap.classList.add("d-none");
+      btnStart.classList.remove("d-none");
+      btnStop.classList.add("d-none");
+      return;
+    }
+    try {
+      await qr.stop();
+      await qr.clear();
+    } catch (e) {
+      // ignore
+    }
+    running = false;
+    if (!silent) camHint.textContent = "";
+    camWrap.classList.add("d-none");
+    btnStart.classList.remove("d-none");
+    btnStop.classList.add("d-none");
+  }
+
+  btnStart.addEventListener("click", startCamera);
+  btnStop.addEventListener("click", () => stopCamera(false));
+
+  // Optional: auto-open camera on mobile if user came with ?cam=1
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("cam") === "1" && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    // must be triggered by user gesture in many browsers, so we just highlight button
+    btnStart.classList.add("btn-orange");
+    btnStart.classList.remove("btn-outline-orange");
+    btnStart.textContent = "📷 Tocar para abrir câmera";
+  }
 </script>
+
+<style>
+  .qr-reader{
+    width: 100%;
+    max-width: 520px;
+    border: 1px solid #eef2f7;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  /* html5-qrcode internal elements */
+  #reader video { width: 100% !important; height: auto !important; }
+  #reader__dashboard_section_csr { display:none; }
+</style>
 {% endblock %}
