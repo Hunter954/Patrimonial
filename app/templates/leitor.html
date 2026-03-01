@@ -20,6 +20,10 @@
         </div>
       </div>
       <div class="p-3">
+        <div class="alert alert-warning d-none" id="httpsWarn">
+          Para abrir a câmera, o site precisa estar em <b>HTTPS</b> (ou localhost). Verifique se a URL começa com <b>https://</b>.
+        </div>
+
         <form method="post" action="{{ url_for('main.leitor_processar') }}" id="scanForm">
           <label class="form-label">Código</label>
           <input class="form-control form-control-lg" name="code" id="codeInput" placeholder="Leia aqui..." autofocus>
@@ -34,6 +38,7 @@
           <div class="text-muted small mb-2">Permita o acesso à câmera quando o navegador pedir.</div>
           <div id="reader" class="qr-reader"></div>
           <div class="text-muted small mt-2" id="camHint"></div>
+          <div class="small text-muted mt-1 d-none" id="camErr"></div>
         </div>
       </div>
     </div>
@@ -49,6 +54,17 @@
           <li>Se existir: abre direto para editar</li>
           <li>Se não existir: abre o cadastro com o código preenchido</li>
         </ol>
+      </div>
+    </div>
+
+    <div class="card panel-card mt-3">
+      <div class="panel-title">Dicas rápidas</div>
+      <div class="p-3 text-muted small">
+        <ul class="mb-0">
+          <li>Evite abrir no navegador “dentro do Instagram/WhatsApp”. Use Chrome/Safari.</li>
+          <li>No iPhone: Ajustes → Safari → Câmera (permitir) ou nas permissões do site.</li>
+          <li>Se aparecer duas câmeras, o sistema tenta escolher a traseira automaticamente.</li>
+        </ul>
       </div>
     </div>
   </div>
@@ -71,25 +87,50 @@
   const btnStop = document.getElementById("btnStopCam");
   const camWrap = document.getElementById("camWrap");
   const camHint = document.getElementById("camHint");
+  const camErr = document.getElementById("camErr");
+  const httpsWarn = document.getElementById("httpsWarn");
 
   let qr = null;
   let running = false;
 
-  function isMobile() {
-    return /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent);
+  function isSecureContextOk() {
+    // secure contexts: https or localhost
+    return window.isSecureContext || location.hostname === "localhost" || location.hostname === "127.0.0.1";
+  }
+
+  // If not secure, camera won't work.
+  if (!isSecureContextOk()) {
+    httpsWarn.classList.remove("d-none");
   }
 
   // If browser doesn't support camera, hide button
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     btnStart.classList.add("d-none");
-  } else {
-    // On desktop keep visible too (some people prefer webcam)
-    if (isMobile()) {
-      btnStart.classList.remove("d-none");
+  }
+
+  async function pickCameraId() {
+    try {
+      const cams = await Html5Qrcode.getCameras();
+      if (!cams || !cams.length) return null;
+
+      // Prefer back/environment camera by label, else last camera (often the back one on mobile)
+      const byLabel = cams.find(c => /back|rear|environment|traseira/i.test(c.label || ""));
+      return (byLabel || cams[cams.length - 1]).id;
+    } catch (e) {
+      return null;
     }
   }
 
   async function startCamera() {
+    camErr.classList.add("d-none");
+    camErr.textContent = "";
+
+    if (!isSecureContextOk()) {
+      camWrap.classList.remove("d-none");
+      camHint.textContent = "Câmera exige HTTPS. Abra o site em https:// (ou localhost).";
+      return;
+    }
+
     if (running) return;
     camWrap.classList.remove("d-none");
     btnStop.classList.remove("d-none");
@@ -99,6 +140,8 @@
 
     try {
       if (!qr) qr = new Html5Qrcode("reader");
+
+      const camId = await pickCameraId();
 
       const formats = [];
       if (window.Html5QrcodeSupportedFormats) {
@@ -113,15 +156,19 @@
         );
       }
 
+      const config = {
+        fps: 12,
+        qrbox: { width: 250, height: 250 },
+        formatsToSupport: formats.length ? formats : undefined
+      };
+
+      // Start by cameraId when available; fallback to facingMode
+      const cameraConfig = camId ? { deviceId: { exact: camId } } : { facingMode: "environment" };
+
       await qr.start(
-        { facingMode: "environment" },
-        {
-          fps: 12,
-          qrbox: { width: 250, height: 250 },
-          formatsToSupport: formats.length ? formats : undefined
-        },
+        cameraConfig,
+        config,
         (decodedText) => {
-          // Found! Put into input and submit the existing flow
           input.value = (decodedText || "").trim();
           if (input.value) {
             camHint.textContent = "Código lido! Enviando…";
@@ -135,7 +182,11 @@
       running = true;
       camHint.textContent = "Aponte para o código. Segure firme para focar.";
     } catch (err) {
-      camHint.textContent = "Não foi possível abrir a câmera. Verifique permissão / HTTPS.";
+      const name = (err && err.name) ? err.name : "Erro";
+      const msg = (err && err.message) ? err.message : String(err);
+      camHint.textContent = "Não foi possível abrir a câmera.";
+      camErr.textContent = `${name}: ${msg}`;
+      camErr.classList.remove("d-none");
       console.error(err);
       btnStart.classList.remove("d-none");
       btnStop.classList.add("d-none");
@@ -152,9 +203,7 @@
     try {
       await qr.stop();
       await qr.clear();
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
     running = false;
     if (!silent) camHint.textContent = "";
     camWrap.classList.add("d-none");
@@ -164,15 +213,6 @@
 
   btnStart.addEventListener("click", startCamera);
   btnStop.addEventListener("click", () => stopCamera(false));
-
-  // Optional: auto-open camera on mobile if user came with ?cam=1
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("cam") === "1" && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    // must be triggered by user gesture in many browsers, so we just highlight button
-    btnStart.classList.add("btn-orange");
-    btnStart.classList.remove("btn-outline-orange");
-    btnStart.textContent = "📷 Tocar para abrir câmera";
-  }
 </script>
 
 <style>
@@ -183,7 +223,6 @@
     border-radius: 14px;
     overflow: hidden;
   }
-  /* html5-qrcode internal elements */
   #reader video { width: 100% !important; height: auto !important; }
   #reader__dashboard_section_csr { display:none; }
 </style>
