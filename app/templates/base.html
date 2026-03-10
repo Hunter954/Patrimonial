@@ -14,21 +14,35 @@
 <body>
   <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm app-navbar">
     <div class="container-fluid px-4">
-      <a class="navbar-brand brand-wrap d-flex align-items-center gap-2" href="{{ url_for('main.dashboard') if current_church else url_for('main.root') }}">
-        {% if church_settings and church_settings.logo_path %}
-          <img class="brand-logo" src="{{ url_for('main.uploaded_file', relative_path=church_settings.logo_path, v=(church_settings.updated_at.timestamp()|int if church_settings.updated_at else 0)) }}" alt="Logo da igreja" onerror="this.style.display='none'; this.nextElementSibling?.classList.remove('d-none');">
-          <div class="brand-mark d-none">{{ (current_church.name[:1] if current_church else 'S')|upper }}</div>
-        {% else %}
-          <div class="brand-mark">{{ (current_church.name[:1] if current_church else 'S')|upper }}</div>
-        {% endif %}
-        <div class="d-flex flex-column lh-sm brand-copy">
+      <a class="navbar-brand brand-wrap d-flex align-items-center gap-3" href="{{ url_for('main.dashboard') if current_church else url_for('main.root') }}">
+        <div class="brand-logo-wrap">
+          {% if church_settings and church_settings.logo_path %}
+            <img
+              class="brand-logo-free"
+              src="{{ url_for('main.uploaded_file', relative_path=church_settings.logo_path, v=(church_settings.updated_at.timestamp()|int if church_settings.updated_at else 0)) }}"
+              alt="Logo da igreja"
+              onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');"
+            >
+            <div class="brand-mark d-none">{{ (current_church.name[:1] if current_church else 'S')|upper }}</div>
+          {% else %}
+            <div class="brand-mark">{{ (current_church.name[:1] if current_church else 'S')|upper }}</div>
+          {% endif %}
+        </div>
+
+        <div class="d-flex flex-column justify-content-center lh-sm brand-copy">
           <span class="brand-title">{{ church_settings.church_name if church_settings else 'SISTEMA PATRIMONIAL' }}</span>
-          <span class="brand-subtitle">{{ current_church.city if current_church else 'Selecione um patrimônio' }}</span>
+          <span class="brand-subtitle">
+            {% if current_church %}
+              {{ current_church.city }}
+            {% else %}
+              Selecione um patrimônio
+            {% endif %}
+          </span>
         </div>
       </a>
 
       {% if current_church %}
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Abrir menu">
         <span class="navbar-toggler-icon"></span>
       </button>
 
