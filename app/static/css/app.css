@@ -123,33 +123,67 @@ body{
 }
 
 .kpi-card{
-  padding: 16px;
-  display:flex;
+  padding: 18px 16px;
+  min-height: 152px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   gap: 14px;
-  align-items:center;
-  min-height: 86px;
+}
+
+.kpi-content{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
 }
 
 .kpi-icon{
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   border-radius: 14px;
   background: var(--orange-soft);
   display:flex;
   align-items:center;
   justify-content:center;
   font-size: 22px;
+  flex-shrink: 0;
 }
 
 .kpi-label{
   color: var(--muted);
   font-weight: 700;
   font-size: 13px;
+  line-height: 1.25;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .kpi-value{
   font-size: 26px;
   font-weight: 900;
+  line-height: 1.15;
+  color: #111827;
+  min-height: 40px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+.kpi-value-suffix{
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
 }
 
 .panel-card .panel-title{
