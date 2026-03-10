@@ -16,14 +16,25 @@ body{
 }
 
 .app-navbar .navbar-brand{ gap: 10px; }
-.brand-mark,
-.brand-logo{
+.brand-wrap{ min-height: 58px; }
+.brand-copy{ justify-content: center; }
+.brand-mark{
   width: 42px; height: 42px;
   border-radius: 12px;
   display:flex; align-items:center; justify-content:center;
   box-shadow: 0 8px 18px rgba(0,0,0,.10);
-  object-fit: cover;
   background: #fff;
+}
+.brand-logo{
+  max-width: 180px;
+  max-height: 52px;
+  width: auto;
+  height: auto;
+  display:block;
+  object-fit: contain;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
 }
 .brand-mark{
   background: linear-gradient(135deg, var(--orange), #ffb067);
@@ -32,6 +43,10 @@ body{
 }
 .brand-title{ font-weight: 800; letter-spacing: .5px; font-size: 13px; }
 .brand-subtitle{ font-size: 11px; color: var(--muted); font-weight: 700; }
+
+@media (max-width: 768px){
+  .brand-logo{ max-width: 132px; max-height: 44px; }
+}
 
 .nav-link{
   font-weight: 700;

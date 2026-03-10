@@ -329,7 +329,19 @@ def patrimonio_edit(asset_id):
         old_location = asset.location
         old_status = asset.status
         old_donation = asset.is_donation
+        old_barcode = asset.barcode
 
+        new_barcode = (request.form.get("barcode") or "").strip()
+        if not new_barcode:
+            flash("Código de barras é obrigatório.", "danger")
+            return redirect(url_for("main.patrimonio_edit", asset_id=asset.id))
+
+        existing_barcode = Asset.query.filter(Asset.barcode == new_barcode, Asset.id != asset.id).first()
+        if existing_barcode:
+            flash("Já existe outro item com esse código de barras.", "danger")
+            return redirect(url_for("main.patrimonio_edit", asset_id=asset.id))
+
+        asset.barcode = new_barcode
         asset.description = (request.form.get("description") or "").strip() or asset.description
         asset.brand = (request.form.get("brand") or "").strip() or None
         asset.model = (request.form.get("model") or "").strip() or None
@@ -366,6 +378,8 @@ def patrimonio_edit(asset_id):
             add_movement(asset.id, "Alteração Status", f"{old_status} -> {asset.status}")
         if asset.is_donation != old_donation:
             add_movement(asset.id, "Alteração Categoria", f"Doação: {'Sim' if old_donation else 'Não'} -> {'Sim' if asset.is_donation else 'Não'}")
+        if asset.barcode != old_barcode:
+            add_movement(asset.id, "Alteração Código de Barras", f"{old_barcode} -> {asset.barcode}")
 
         flash("Item atualizado.", "success")
         return redirect(url_for("main.patrimonio_edit", asset_id=asset.id))

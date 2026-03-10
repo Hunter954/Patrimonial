@@ -45,6 +45,21 @@
           {% endif %}
 
           <div class="row g-2">
+            {% if asset %}
+            <div class="col-12 col-md-6">
+              <label class="form-label">Código de barras *</label>
+              <input class="form-control" name="barcode" value="{{ asset.barcode }}" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Status</label>
+              <select class="form-select" name="status">
+                <option value="ativo" {{ 'selected' if asset.status=='ativo' else '' }}>Ativo</option>
+                <option value="manutencao" {{ 'selected' if asset.status=='manutencao' else '' }}>Manutenção</option>
+                <option value="baixado" {{ 'selected' if asset.status=='baixado' else '' }}>Baixado</option>
+              </select>
+            </div>
+            {% endif %}
+
             <div class="col-12">
               <label class="form-label">Descrição *</label>
               <input class="form-control" name="description" value="{{ asset.description if asset else '' }}" required>
@@ -74,8 +89,8 @@
             <div class="col-12 col-md-4">
               <label class="form-label">Categoria do item</label>
               <select class="form-select" name="is_donation">
-                <option value="0" {{ 'selected' if asset and not asset.is_donation else '' }}>Patrimônio próprio</option>
-                <option value="1" {{ 'selected' if asset and asset.is_donation else '' }}>Item de doação</option>
+                <option value="0" {{ 'selected' if asset and not asset.is_donation else '' }}>Próprio</option>
+                <option value="1" {{ 'selected' if asset and asset.is_donation else '' }}>Doação</option>
               </select>
             </div>
 
@@ -105,16 +120,6 @@
               <label class="form-label">Taxa de depreciação (%/ano)</label>
               <input class="form-control" name="depreciation_rate" value="{{ asset.depreciation_rate if asset else '20' }}">
             </div>
-            {% if asset %}
-            <div class="col-12 col-md-4">
-              <label class="form-label">Status</label>
-              <select class="form-select" name="status">
-                <option value="ativo" {{ 'selected' if asset.status=='ativo' else '' }}>Ativo</option>
-                <option value="manutencao" {{ 'selected' if asset.status=='manutencao' else '' }}>Manutenção</option>
-                <option value="baixado" {{ 'selected' if asset.status=='baixado' else '' }}>Baixado</option>
-              </select>
-            </div>
-            {% endif %}
           </div>
 
           {% if asset %}
@@ -150,7 +155,7 @@
         {% endif %}
         <div class="d-flex justify-content-between mb-2">
           <div class="text-muted">Categoria</div>
-          <div class="fw-semibold">{{ 'Doação' if asset.is_donation else 'Patrimônio próprio' }}</div>
+          <div class="fw-semibold">{{ 'Doação' if asset.is_donation else 'Próprio' }}</div>
         </div>
         <div class="d-flex justify-content-between mb-2">
           <div class="text-muted">Igreja</div>
