@@ -4,7 +4,7 @@
 <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
   <div>
     <h1 class="page-title mb-1">Patrimônio</h1>
-    <div class="text-muted">Lista e gestão dos bens cadastrados.</div>
+    <div class="text-muted">Lista e gestão dos bens cadastrados nesta igreja.</div>
   </div>
   <div class="d-flex gap-2">
     <a class="btn btn-orange" href="{{ url_for('main.patrimonio_new') }}">+ Novo Bem</a>
@@ -14,10 +14,10 @@
 <div class="card panel-card mb-3">
   <div class="p-3">
     <form class="row g-2" method="get">
-      <div class="col-12 col-lg-5">
+      <div class="col-12 col-lg-4">
         <input class="form-control" name="q" value="{{ q }}" placeholder="Buscar por código, barras, descrição, série...">
       </div>
-      <div class="col-6 col-lg-3">
+      <div class="col-6 col-lg-2">
         <select class="form-select" name="status">
           <option value="">Status (todos)</option>
           <option value="ativo" {{ 'selected' if status=='ativo' else '' }}>Ativo</option>
@@ -25,7 +25,14 @@
           <option value="baixado" {{ 'selected' if status=='baixado' else '' }}>Baixado</option>
         </select>
       </div>
-      <div class="col-6 col-lg-3">
+      <div class="col-6 col-lg-2">
+        <select class="form-select" name="donation">
+          <option value="">Categoria (todas)</option>
+          <option value="1" {{ 'selected' if donation=='1' else '' }}>Doação</option>
+          <option value="0" {{ 'selected' if donation=='0' else '' }}>Não doação</option>
+        </select>
+      </div>
+      <div class="col-8 col-lg-3">
         <select class="form-select" name="location">
           <option value="">Localização (todas)</option>
           {% for loc in locations %}
@@ -33,7 +40,7 @@
           {% endfor %}
         </select>
       </div>
-      <div class="col-12 col-lg-1 d-grid">
+      <div class="col-4 col-lg-1 d-grid">
         <button class="btn btn-outline-orange" type="submit">Filtrar</button>
       </div>
     </form>
@@ -47,6 +54,7 @@
         <tr>
           <th>Código</th>
           <th>Descrição</th>
+          <th>Categoria</th>
           <th>Localização</th>
           <th>Responsável</th>
           <th>Status</th>
@@ -59,8 +67,22 @@
           <tr>
             <td class="fw-semibold">{{ a.internal_code }}</td>
             <td>
-              <div class="fw-semibold">{{ a.description }}</div>
-              <div class="text-muted small">Barras: {{ a.barcode }} • Série: {{ a.serial_number or "-" }}</div>
+              <div class="d-flex align-items-center gap-3">
+                {% if a.image_path %}
+                  <img class="list-thumb" src="{{ url_for('main.uploaded_file', relative_path=a.image_path) }}" alt="Imagem item">
+                {% endif %}
+                <div>
+                  <div class="fw-semibold">{{ a.description }}</div>
+                  <div class="text-muted small">Barras: {{ a.barcode }} • Série: {{ a.serial_number or "-" }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              {% if a.is_donation %}
+                <span class="badge text-bg-warning">Doação</span>
+              {% else %}
+                <span class="badge text-bg-light border">Próprio</span>
+              {% endif %}
             </td>
             <td>{{ a.location or "-" }}</td>
             <td>{{ a.responsible or "-" }}</td>
@@ -79,7 +101,7 @@
             </td>
           </tr>
         {% else %}
-          <tr><td colspan="7" class="text-muted p-4">Nenhum item encontrado.</td></tr>
+          <tr><td colspan="8" class="text-muted p-4">Nenhum item encontrado.</td></tr>
         {% endfor %}
       </tbody>
     </table>

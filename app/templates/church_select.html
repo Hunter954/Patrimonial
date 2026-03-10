@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% set title = "Selecionar patrimônio" %}
+{% block content %}
+<div class="selector-wrap mx-auto">
+  <div class="text-center mb-4">
+    <div class="selector-eyebrow">Sistema patrimonial</div>
+    <h1 class="selector-title">Escolha qual patrimônio deseja acessar</h1>
+    <p class="selector-subtitle">Cada igreja fica separada. O dashboard, os itens e os relatórios não interferem um no outro.</p>
+  </div>
+
+  <div class="row g-4 justify-content-center">
+    {% for card in cards %}
+    <div class="col-12 col-lg-5">
+      <form method="post" action="{{ url_for('main.select_church') }}">
+        <input type="hidden" name="church_key" value="{{ card.key }}">
+        <button class="church-card" type="submit">
+          <div class="church-card-top">
+            {% if card.logo_path %}
+              <img class="church-card-logo" src="{{ url_for('main.uploaded_file', relative_path=card.logo_path) }}" alt="Logo {{ card.name }}">
+            {% else %}
+              <div class="church-card-logo church-card-logo-fallback">{{ card.name[:1] }}</div>
+            {% endif %}
+            <span class="church-badge">Entrar</span>
+          </div>
+          <div class="church-card-title">{{ card.name }}</div>
+          <div class="church-card-desc">Dashboard exclusivo, patrimônio isolado e relatórios próprios para {{ card.city }}.</div>
+        </button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

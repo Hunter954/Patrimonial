@@ -14,14 +14,19 @@
 <body>
   <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm app-navbar">
     <div class="container-fluid px-4">
-      <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('main.dashboard') }}">
-        <div class="brand-mark">S</div>
+      <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('main.dashboard') if current_church else url_for('main.root') }}">
+        {% if church_settings and church_settings.logo_path %}
+          <img class="brand-logo" src="{{ url_for('main.uploaded_file', relative_path=church_settings.logo_path) }}" alt="Logo da igreja">
+        {% else %}
+          <div class="brand-mark">{{ (current_church.name[:1] if current_church else 'S')|upper }}</div>
+        {% endif %}
         <div class="d-flex flex-column lh-sm">
-          <span class="brand-title">SISTEMA PATRIMONIAL</span>
-          <span class="brand-subtitle">MVP • Flask</span>
+          <span class="brand-title">{{ church_settings.church_name if church_settings else 'SISTEMA PATRIMONIAL' }}</span>
+          <span class="brand-subtitle">{{ current_church.city if current_church else 'Selecione um patrimônio' }}</span>
         </div>
       </a>
 
+      {% if current_church %}
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -33,19 +38,21 @@
           <li class="nav-item"><a class="nav-link {{ 'active' if request.path.startswith('/inventario') else '' }}" href="{{ url_for('main.inventario') }}">Inventário</a></li>
           <li class="nav-item"><a class="nav-link {{ 'active' if request.path.startswith('/relatorios') else '' }}" href="{{ url_for('main.relatorios') }}">Relatórios</a></li>
           <li class="nav-item"><a class="nav-link {{ 'active' if request.path.startswith('/leitor') else '' }}" href="{{ url_for('main.leitor') }}">Leitor</a></li>
+          <li class="nav-item"><a class="nav-link {{ 'active' if request.path.startswith('/admin/igreja') else '' }}" href="{{ url_for('main.church_admin') }}">Admin</a></li>
         </ul>
 
         <div class="d-flex align-items-center gap-3">
-          <div class="notif">
-            <span class="notif-dot">3</span>
-            <span class="notif-bell">🔔</span>
-          </div>
+          <a class="btn btn-sm btn-outline-orange" href="{{ url_for('main.change_church') }}">Trocar igreja</a>
           <div class="d-flex align-items-center gap-2">
-            <div class="avatar">A</div>
-            <div class="small fw-semibold">Admin</div>
+            <div class="avatar">{{ current_church.name[:1]|upper }}</div>
+            <div>
+              <div class="small fw-semibold">Patrimônio ativo</div>
+              <div class="small text-muted">{{ current_church.name }}</div>
+            </div>
           </div>
         </div>
       </div>
+      {% endif %}
     </div>
   </nav>
 

@@ -8,7 +8,7 @@
       {% if asset %}
         {{ asset.internal_code }} • Barras: {{ asset.barcode }}
       {% else %}
-        Preencha os dados para cadastrar um novo item.
+        Preencha os dados para cadastrar um novo item em {{ church_settings.church_name if church_settings else current_church.name }}.
       {% endif %}
     </div>
   </div>
@@ -25,7 +25,7 @@
     <div class="card panel-card">
       <div class="panel-title">Dados do patrimônio</div>
       <div class="p-3">
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
           {% if not asset %}
           <div class="row g-2">
             <div class="col-12 col-md-6">
@@ -72,17 +72,29 @@
               <input type="date" class="form-control" name="purchase_date" value="{{ asset.purchase_date.isoformat() if asset else '' }}">
             </div>
             <div class="col-12 col-md-4">
+              <label class="form-label">Categoria do item</label>
+              <select class="form-select" name="is_donation">
+                <option value="0" {{ 'selected' if asset and not asset.is_donation else '' }}>Patrimônio próprio</option>
+                <option value="1" {{ 'selected' if asset and asset.is_donation else '' }}>Item de doação</option>
+              </select>
+            </div>
+
+            <div class="col-12 col-md-6">
               <label class="form-label">Centro de custo</label>
               <input class="form-control" name="cost_center" value="{{ asset.cost_center if asset else '' }}" placeholder="TI / Produção / Vendas...">
             </div>
-
             <div class="col-12 col-md-6">
               <label class="form-label">Localização</label>
               <input class="form-control" name="location" value="{{ asset.location if asset else '' }}" placeholder="Sala / Setor / Unidade...">
             </div>
+
             <div class="col-12 col-md-6">
               <label class="form-label">Responsável</label>
               <input class="form-control" name="responsible" value="{{ asset.responsible if asset else '' }}">
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Imagem do item</label>
+              <input type="file" class="form-control" name="item_image" accept=".png,.jpg,.jpeg,.webp">
             </div>
 
             <div class="col-12 col-md-4">
@@ -128,6 +140,25 @@
 
   <div class="col-12 col-lg-4">
     {% if asset %}
+    <div class="card panel-card mb-3">
+      <div class="panel-title">Imagem e categoria</div>
+      <div class="p-3">
+        {% if asset.image_path %}
+          <img class="asset-photo mb-3" src="{{ url_for('main.uploaded_file', relative_path=asset.image_path) }}" alt="Imagem do item">
+        {% else %}
+          <div class="asset-photo-placeholder mb-3">Sem imagem enviada</div>
+        {% endif %}
+        <div class="d-flex justify-content-between mb-2">
+          <div class="text-muted">Categoria</div>
+          <div class="fw-semibold">{{ 'Doação' if asset.is_donation else 'Patrimônio próprio' }}</div>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <div class="text-muted">Igreja</div>
+          <div class="fw-semibold">{{ church_settings.church_name if church_settings else current_church.name }}</div>
+        </div>
+      </div>
+    </div>
+
     <div class="card panel-card mb-3">
       <div class="panel-title">Depreciação (linear)</div>
       <div class="p-3">
@@ -180,7 +211,7 @@
       <div class="p-3 text-muted">
         Você também pode cadastrar pelo <b>Leitor</b>. Ao ler um código:
         <ul class="mt-2 mb-0">
-          <li>se existir, abre direto no item</li>
+          <li>se existir nesta igreja, abre direto no item</li>
           <li>se não existir, abre a tela de cadastro já com o código preenchido</li>
         </ul>
       </div>

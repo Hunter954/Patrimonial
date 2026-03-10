@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 {% set title = "Dashboard • Sistema Patrimonial" %}
 {% block content %}
+<div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
+  <div>
+    <h1 class="page-title mb-1">Dashboard</h1>
+    <div class="text-muted">Visão do patrimônio de {{ church_settings.church_name if church_settings else current_church.name }}.</div>
+  </div>
+  <a class="btn btn-orange" href="{{ url_for('main.patrimonio_new') }}">+ Novo Bem</a>
+</div>
+
 <div class="row g-3">
   <div class="col-12 col-xl-3">
     <div class="card kpi-card">
@@ -14,20 +22,20 @@
 
   <div class="col-12 col-xl-3">
     <div class="card kpi-card">
-      <div class="kpi-icon">💰</div>
+      <div class="kpi-icon">🎁</div>
       <div>
-        <div class="kpi-label">Valor do Patrimônio</div>
-        <div class="kpi-value">{{ currency_br(total_value) }}</div>
+        <div class="kpi-label">Itens de Doação</div>
+        <div class="kpi-value">{{ donation_count }}</div>
       </div>
     </div>
   </div>
 
   <div class="col-12 col-xl-3">
     <div class="card kpi-card">
-      <div class="kpi-icon">🪙</div>
+      <div class="kpi-icon">💰</div>
       <div>
-        <div class="kpi-label">Valor Depreciado</div>
-        <div class="kpi-value">{{ currency_br(total_depreciated) }}</div>
+        <div class="kpi-label">Valor do Patrimônio</div>
+        <div class="kpi-value">{{ currency_br(total_value) }}</div>
       </div>
     </div>
   </div>
@@ -56,7 +64,7 @@
   <div class="col-12 col-lg-5">
     <div class="card panel-card">
       <div class="panel-title">Status dos Bens</div>
-      <div class="p-3 d-flex gap-4 align-items-center">
+      <div class="p-3 d-flex gap-4 align-items-center flex-wrap">
         <div style="width: 230px; height: 230px;">
           <canvas id="donutStatus"></canvas>
         </div>

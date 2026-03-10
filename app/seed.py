@@ -1,7 +1,9 @@
 from datetime import date, timedelta
 from decimal import Decimal
+
 from . import db
 from .models import Asset, Movement
+
 
 def seed_if_empty():
     if Asset.query.first():
@@ -10,8 +12,9 @@ def seed_if_empty():
     today = date.today()
     assets = [
         Asset(
-            internal_code="PAT-0001",
+            internal_code="PAT-FOZ-0001",
             barcode="789000000001",
+            church_key="foz",
             description="Notebook Dell Latitude 5420",
             brand="Dell",
             model="Latitude 5420",
@@ -27,8 +30,10 @@ def seed_if_empty():
             last_inventory_date=today - timedelta(days=30),
         ),
         Asset(
-            internal_code="PAT-0002",
+            internal_code="PAT-FOZ-0002",
             barcode="789000000002",
+            church_key="foz",
+            is_donation=True,
             description="Impressora HP LaserJet Pro",
             brand="HP",
             model="M404dn",
@@ -44,16 +49,17 @@ def seed_if_empty():
             last_inventory_date=today - timedelta(days=120),
         ),
         Asset(
-            internal_code="PAT-0003",
-            barcode="789000000003",
+            internal_code="PAT-PY-0001",
+            barcode="789000000101",
+            church_key="paraguai",
             description="Projetor Epson PowerLite",
             brand="Epson",
             model="X41",
             serial_number="EP-X41-3321",
             purchase_value=Decimal("2600.00"),
             purchase_date=today - timedelta(days=1200),
-            cost_center="Vendas",
-            location="Sala de Reunião",
+            cost_center="Culto",
+            location="Sala Principal",
             responsible="Carlos",
             useful_life_years=5,
             depreciation_rate=Decimal("20.00"),
@@ -61,38 +67,23 @@ def seed_if_empty():
             last_inventory_date=today - timedelta(days=400),
         ),
         Asset(
-            internal_code="PAT-0004",
-            barcode="789000000004",
+            internal_code="PAT-PY-0002",
+            barcode="789000000102",
+            church_key="paraguai",
+            is_donation=True,
             description="Desktop Lenovo ThinkCentre",
             brand="Lenovo",
             model="M70s",
             serial_number="LV-M70S-1133",
             purchase_value=Decimal("4200.00"),
             purchase_date=today - timedelta(days=300),
-            cost_center="Produção",
-            location="Fábrica - Linha 1",
+            cost_center="Administração",
+            location="Secretaria",
             responsible=None,
             useful_life_years=5,
             depreciation_rate=Decimal("20.00"),
             status="ativo",
             last_inventory_date=None,
-        ),
-        Asset(
-            internal_code="PAT-0005",
-            barcode="789000000005",
-            description="Tablet Samsung Galaxy Tab",
-            brand="Samsung",
-            model="Tab A8",
-            serial_number="SS-A8-7788",
-            purchase_value=Decimal("1400.00"),
-            purchase_date=today - timedelta(days=200),
-            cost_center="Vendas",
-            location="Externo",
-            responsible="Ana",
-            useful_life_years=3,
-            depreciation_rate=Decimal("33.33"),
-            status="baixado",
-            last_inventory_date=today - timedelta(days=20),
         ),
     ]
     db.session.add_all(assets)

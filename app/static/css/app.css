@@ -16,14 +16,19 @@ body{
 }
 
 .app-navbar .navbar-brand{ gap: 10px; }
-.brand-mark{
-  width: 36px; height: 36px;
-  border-radius: 10px;
+.brand-mark,
+.brand-logo{
+  width: 42px; height: 42px;
+  border-radius: 12px;
   display:flex; align-items:center; justify-content:center;
+  box-shadow: 0 8px 18px rgba(0,0,0,.10);
+  object-fit: cover;
+  background: #fff;
+}
+.brand-mark{
   background: linear-gradient(135deg, var(--orange), #ffb067);
   color: #111827;
   font-weight: 800;
-  box-shadow: 0 8px 18px rgba(0,0,0,.10);
 }
 .brand-title{ font-weight: 800; letter-spacing: .5px; font-size: 13px; }
 .brand-subtitle{ font-size: 11px; color: var(--muted); font-weight: 700; }
@@ -44,19 +49,6 @@ body{
   background: #111827; color: #fff;
   display:flex; align-items:center; justify-content:center;
   font-weight: 800;
-}
-
-.notif{ position: relative; }
-.notif-bell{ font-size: 18px; }
-.notif-dot{
-  position:absolute; top:-6px; right:-8px;
-  background: var(--orange);
-  color: #111827;
-  font-weight: 900;
-  border-radius: 999px;
-  font-size: 11px;
-  padding: 2px 6px;
-  border: 2px solid #fff;
 }
 
 .page-title{ font-size: 22px; font-weight: 900; }
@@ -196,4 +188,73 @@ body{
 .form-control:focus, .form-select:focus{
   border-color: rgba(255,122,0,.55);
   box-shadow: 0 0 0 .25rem rgba(255,122,0,.12);
+}
+
+.selector-wrap{ max-width: 1100px; padding-top: 48px; }
+.selector-eyebrow{
+  display: inline-flex;
+  background: var(--orange-soft);
+  color: var(--orange);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+.selector-title{ font-size: 34px; font-weight: 900; }
+.selector-subtitle{ color: var(--muted); max-width: 760px; margin: 0 auto; }
+.church-card{
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: #fff;
+  padding: 24px;
+  transition: .2s ease;
+  box-shadow: 0 12px 28px rgba(31,41,55,.08);
+}
+.church-card:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 18px 36px rgba(31,41,55,.12);
+  border-color: rgba(255,122,0,.35);
+}
+.church-card-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 18px; }
+.church-card-logo,
+.church-preview-logo{
+  width: 68px; height: 68px; border-radius: 18px; object-fit: cover; background: #fff; border:1px solid #eef2f7;
+}
+.church-card-logo-fallback{
+  display:flex; align-items:center; justify-content:center; font-weight: 900; font-size: 26px; background: linear-gradient(135deg, var(--orange), #ffb067); color: #111827;
+}
+.church-badge{ background: var(--orange-soft); color: var(--orange); font-weight: 800; padding: 8px 14px; border-radius: 999px; }
+.church-card-title{ font-size: 22px; font-weight: 900; margin-bottom: 8px; }
+.church-card-desc{ color: var(--muted); }
+
+.asset-photo{
+  width: 100%;
+  max-height: 270px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid #eef2f7;
+}
+.asset-photo-placeholder{
+  min-height: 220px;
+  border-radius: 14px;
+  border: 1px dashed #d1d5db;
+  background: #f8fafc;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color: var(--muted);
+  font-weight: 700;
+}
+.list-thumb{
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #eef2f7;
+}
+
+@media (max-width: 991.98px){
+  .selector-title{ font-size: 28px; }
 }

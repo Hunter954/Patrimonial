@@ -44,6 +44,45 @@
     </div>
   </div>
 
+  <div class="col-12 col-lg-6">
+    <div class="card panel-card">
+      <div class="panel-title">Itens de doação</div>
+      <div class="p-3">
+        {% if donated_assets %}
+          <div class="d-flex flex-column gap-2">
+            {% for a in donated_assets[:10] %}
+              <a class="report-link" href="{{ url_for('main.patrimonio_edit', asset_id=a.id) }}">
+                <span class="fw-semibold">{{ a.internal_code }}</span> — {{ a.description }}
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-muted">Nenhum item marcado como doação.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card panel-card">
+      <div class="panel-title">Resumo rápido</div>
+      <div class="p-3">
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">Itens em manutenção</span>
+          <span class="fw-semibold">{{ maintenance|length }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">Itens de doação</span>
+          <span class="fw-semibold">{{ donated_assets|length }}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span class="text-muted">Setores com itens</span>
+          <span class="fw-semibold">{{ by_cc|length }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="col-12">
     <div class="card panel-card">
       <div class="panel-title">Mais depreciados (top 10)</div>

@@ -1,12 +1,17 @@
 from datetime import date, datetime
 from . import db
 
+
 class Asset(db.Model):
     __tablename__ = "assets"
 
     id = db.Column(db.Integer, primary_key=True)
-    internal_code = db.Column(db.String(20), unique=True, nullable=False, index=True)
+    internal_code = db.Column(db.String(30), unique=True, nullable=False, index=True)
     barcode = db.Column(db.String(64), unique=True, nullable=False, index=True)
+
+    church_key = db.Column(db.String(30), nullable=False, default="foz")
+    is_donation = db.Column(db.Boolean, nullable=False, default=False)
+    image_path = db.Column(db.String(255), nullable=True)
 
     description = db.Column(db.String(160), nullable=False)
     brand = db.Column(db.String(80), nullable=True)
@@ -35,6 +40,7 @@ class Asset(db.Model):
     def __repr__(self):
         return f"<Asset {self.internal_code} {self.description}>"
 
+
 class Movement(db.Model):
     __tablename__ = "movements"
 
@@ -49,3 +55,16 @@ class Movement(db.Model):
 
     def __repr__(self):
         return f"<Movement {self.action} {self.created_at}>"
+
+
+class AppSetting(db.Model):
+    __tablename__ = "app_settings"
+
+    id = db.Column(db.Integer, primary_key=True)
+    church_key = db.Column(db.String(30), unique=True, nullable=False, index=True)
+    church_name = db.Column(db.String(120), nullable=False)
+    logo_path = db.Column(db.String(255), nullable=True)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<AppSetting {self.church_key}>"

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% set title = "Admin da Igreja • Sistema Patrimonial" %}
+{% block content %}
+<div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
+  <div>
+    <h1 class="page-title mb-1">Administração da igreja</h1>
+    <div class="text-muted">Personalize a identidade visual do patrimônio atual.</div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-7">
+    <div class="card panel-card">
+      <div class="panel-title">Dados visuais</div>
+      <div class="p-3">
+        <form method="post" enctype="multipart/form-data" class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Nome exibido da igreja</label>
+            <input class="form-control" name="church_name" value="{{ settings.church_name }}" placeholder="Ex: Igreja de Foz do Iguaçu">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Logo da igreja</label>
+            <input type="file" class="form-control" name="church_logo" accept=".png,.jpg,.jpeg,.webp">
+            <div class="form-text">Essa logo substitui o quadradinho redondo com a letra no topo.</div>
+          </div>
+          <div class="col-12">
+            <button class="btn btn-orange" type="submit">Salvar configurações</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-5">
+    <div class="card panel-card">
+      <div class="panel-title">Prévia</div>
+      <div class="p-3 text-center">
+        {% if settings.logo_path %}
+          <img class="church-preview-logo mb-3" src="{{ url_for('main.uploaded_file', relative_path=settings.logo_path) }}" alt="Logo atual">
+        {% else %}
+          <div class="church-card-logo church-card-logo-fallback mx-auto mb-3">{{ settings.church_name[:1] }}</div>
+        {% endif %}
+        <div class="fw-semibold">{{ settings.church_name }}</div>
+        <div class="text-muted small">Logo exibida no menu superior e na escolha de patrimônio.</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
