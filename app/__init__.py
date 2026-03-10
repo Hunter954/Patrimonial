@@ -25,12 +25,20 @@ def _normalize_database_url() -> str:
     return database_url
 
 
-def _ensure_upload_folders(app: Flask):
+def _resolve_upload_root(app: Flask) -> Path:
     base_upload_dir = os.getenv("UPLOAD_DIR")
     if base_upload_dir:
-        upload_root = Path(base_upload_dir)
-    else:
-        upload_root = Path(app.root_path) / "static" / "uploads"
+        return Path(base_upload_dir)
+
+    railway_default = Path("/data/uploads")
+    if railway_default.parent.exists():
+        return railway_default
+
+    return Path(app.root_path) / "static" / "uploads"
+
+
+def _ensure_upload_folders(app: Flask):
+    upload_root = _resolve_upload_root(app)
 
     item_dir = upload_root / "items"
     logo_dir = upload_root / "logos"

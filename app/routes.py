@@ -5,7 +5,7 @@ import os
 import uuid
 from pathlib import Path
 
-from flask import Blueprint, current_app, flash, redirect, render_template, request, send_file, session, url_for
+from flask import Blueprint, current_app, flash, redirect, render_template, request, send_file, send_from_directory, session, url_for
 from sqlalchemy import func
 from werkzeug.utils import secure_filename
 
@@ -104,18 +104,18 @@ def save_upload(file_storage, target_dir: str, prefix: str) -> str | None:
     original_name = secure_filename(file_storage.filename)
     ext = Path(original_name).suffix.lower()
     filename = f"{prefix}_{uuid.uuid4().hex[:12]}{ext}"
-    os.makedirs(target_dir, exist_ok=True)
-    destination = os.path.join(target_dir, filename)
+    target_path = Path(target_dir)
+    target_path.mkdir(parents=True, exist_ok=True)
+    destination = target_path / filename
     file_storage.save(destination)
 
-    upload_root = current_app.config["UPLOAD_ROOT"]
-    relative = os.path.relpath(destination, upload_root).replace("\\", "/")
+    upload_root = Path(current_app.config["UPLOAD_ROOT"]).resolve()
+    relative = destination.resolve().relative_to(upload_root).as_posix()
     return relative
-
 
 @bp.before_app_request
 def enforce_church_context():
-    allowed = {"main.root", "main.select_church", "static"}
+    allowed = {"main.root", "main.select_church", "main.uploaded_file", "static"}
     if request.endpoint in allowed or request.endpoint is None:
         return None
     if get_current_church_key():
@@ -429,10 +429,22 @@ def etiqueta_png(asset_id):
 
 @bp.get("/uploads/<path:relative_path>")
 def uploaded_file(relative_path):
-    full_path = os.path.join(current_app.config["UPLOAD_ROOT"], relative_path)
-    if not os.path.isfile(full_path):
+    upload_root = Path(current_app.config["UPLOAD_ROOT"]).resolve()
+    full_path = (upload_root / relative_path).resolve()
+
+    try:
+        full_path.relative_to(upload_root)
+    except ValueError:
         return "", 404
-    return send_file(full_path)
+
+    if not full_path.is_file():
+        return "", 404
+
+    parent = str(full_path.parent)
+    filename = full_path.name
+    response = send_from_directory(parent, filename, conditional=True)
+    response.headers["Cache-Control"] = "public, max-age=300"
+    return response
 
 
 @bp.get("/inventario")
