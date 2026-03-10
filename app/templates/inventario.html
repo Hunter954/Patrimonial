@@ -43,7 +43,7 @@
           <th>Localização</th>
           <th>Status</th>
           <th>Últ. inventário</th>
-          <th></th>
+          <th class="text-end">Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -67,7 +67,14 @@
             </td>
             <td class="text-muted">{{ a.last_inventory_date.strftime("%d/%m/%Y") if a.last_inventory_date else "-" }}</td>
             <td class="text-end">
-              <a class="btn btn-sm btn-outline-orange" href="{{ url_for('main.patrimonio_edit', asset_id=a.id) }}">Abrir</a>
+              <div class="d-flex justify-content-end gap-2 flex-wrap">
+                <a class="btn btn-sm btn-outline-orange" href="{{ url_for('main.patrimonio_edit', asset_id=a.id) }}">{{ 'Editar' if can_edit else 'Visualizar' }}</a>
+                {% if can_edit %}
+                <form method="post" action="{{ url_for('main.patrimonio_delete', asset_id=a.id) }}" onsubmit="return confirm('Excluir este item do inventário?');">
+                  <button class="btn btn-sm btn-outline-danger" type="submit">Excluir</button>
+                </form>
+                {% endif %}
+              </div>
             </td>
           </tr>
         {% else %}

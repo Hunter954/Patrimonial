@@ -12,6 +12,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
+  {% if current_user %}
   <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm app-navbar">
     <div class="container-fluid px-4">
       <a class="navbar-brand brand-wrap d-flex align-items-center gap-3" href="{{ url_for('main.dashboard') if current_church else url_for('main.root') }}">
@@ -41,40 +42,47 @@
         </div>
       </a>
 
-      {% if current_church %}
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Abrir menu">
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <div class="collapse navbar-collapse" id="navMain">
         <ul class="navbar-nav mx-auto gap-lg-3">
+          {% if current_church %}
           <li class="nav-item"><a class="nav-link {{ 'active' if request.path.startswith('/dashboard') else '' }}" href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
           <li class="nav-item"><a class="nav-link {{ 'active' if request.path.startswith('/patrimonio') else '' }}" href="{{ url_for('main.patrimonio_list') }}">Patrimônio</a></li>
           <li class="nav-item"><a class="nav-link {{ 'active' if request.path.startswith('/inventario') else '' }}" href="{{ url_for('main.inventario') }}">Inventário</a></li>
           <li class="nav-item"><a class="nav-link {{ 'active' if request.path.startswith('/relatorios') else '' }}" href="{{ url_for('main.relatorios') }}">Relatórios</a></li>
           <li class="nav-item"><a class="nav-link {{ 'active' if request.path.startswith('/leitor') else '' }}" href="{{ url_for('main.leitor') }}">Leitor</a></li>
-          <li class="nav-item"><a class="nav-link {{ 'active' if request.path.startswith('/admin/igreja') else '' }}" href="{{ url_for('main.church_admin') }}">Admin</a></li>
+          {% if is_admin %}
+          <li class="nav-item"><a class="nav-link {{ 'active' if request.path.startswith('/admin/igreja') else '' }}" href="{{ url_for('main.church_admin') }}">Admin igreja</a></li>
+          <li class="nav-item"><a class="nav-link {{ 'active' if request.path.startswith('/admin/usuarios') else '' }}" href="{{ url_for('main.admin_users') }}">Usuários</a></li>
+          {% endif %}
+          {% endif %}
         </ul>
 
         <div class="d-flex align-items-center gap-3">
+          {% if current_church %}
           <a class="btn btn-sm btn-outline-orange" href="{{ url_for('main.change_church') }}">Trocar igreja</a>
+          {% endif %}
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('main.logout') }}">Sair</a>
           <div class="d-flex align-items-center gap-2">
-            <div class="avatar">{{ current_church.name[:1]|upper }}</div>
+            <div class="avatar">{{ current_user.username[:1]|upper }}</div>
             <div>
-              <div class="small fw-semibold">Patrimônio ativo</div>
-              <div class="small text-muted">{{ current_church.name }}</div>
+              <div class="small fw-semibold">{{ current_user.username }}</div>
+              <div class="small text-muted">{{ 'Administrador' if current_user.role == 'admin' else 'Visualizador' }}</div>
             </div>
           </div>
         </div>
       </div>
-      {% endif %}
     </div>
   </nav>
+  {% endif %}
 
-  <main class="container-fluid px-4 py-4">
+  <main class="container-fluid px-4 py-4 {% if not current_user %}public-page{% endif %}">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        <div class="mb-3">
+        <div class="mb-3 {% if not current_user %}flash-public mx-auto{% endif %}">
           {% for category, message in messages %}
             <div class="alert alert-{{ category }} mb-2">{{ message }}</div>
           {% endfor %}

@@ -1,11 +1,24 @@
 from datetime import date, timedelta
 from decimal import Decimal
 
+from werkzeug.security import generate_password_hash
+
 from . import db
-from .models import Asset, Movement
+from .models import Asset, Movement, User
 
 
 def seed_if_empty():
+    if not User.query.first():
+        db.session.add(
+            User(
+                username="admin",
+                password_hash=generate_password_hash("admin123"),
+                role="admin",
+                is_active=True,
+            )
+        )
+        db.session.commit()
+
     if Asset.query.first():
         return
 

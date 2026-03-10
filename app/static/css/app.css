@@ -491,3 +491,56 @@ body{
     max-height: 70px;
   }
 }
+
+.public-page{
+  min-height: 100vh;
+}
+
+.flash-public{
+  max-width: 520px;
+}
+
+.login-page{
+  min-height: calc(100vh - 32px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+.login-shell{
+  width: 100%;
+  max-width: 520px;
+}
+
+.login-card{
+  overflow: hidden;
+}
+
+.login-logo{
+  display: block;
+  max-width: 240px;
+  max-height: 120px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.login-logo-fallback{
+  width: 84px;
+  height: 84px;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 32px;
+  background: linear-gradient(135deg, var(--orange), #ffb067);
+  color: #111827;
+}
+
+.login-title{
+  font-size: 30px;
+}

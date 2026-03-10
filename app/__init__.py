@@ -50,7 +50,9 @@ def _ensure_upload_folders(app: Flask):
     app.config["LOGO_UPLOAD_DIR"] = str(logo_dir)
 
 
+
 def _ensure_schema(app: Flask):
+    db.create_all()
     inspector = inspect(db.engine)
 
     if "assets" in inspector.get_table_names():
@@ -67,9 +69,6 @@ def _ensure_schema(app: Flask):
         if statements:
             db.session.commit()
 
-    db.create_all()
-
-    inspector = inspect(db.engine)
     if "app_settings" in inspector.get_table_names():
         columns = {c["name"] for c in inspector.get_columns("app_settings")}
         if "church_name" not in columns:
@@ -80,6 +79,21 @@ def _ensure_schema(app: Flask):
             db.session.commit()
         if "updated_at" not in columns:
             db.session.execute(text("ALTER TABLE app_settings ADD COLUMN updated_at TIMESTAMP"))
+            db.session.commit()
+
+    if "users" in inspector.get_table_names():
+        columns = {c["name"] for c in inspector.get_columns("users")}
+        if "role" not in columns:
+            db.session.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'viewer'"))
+            db.session.commit()
+        if "is_active" not in columns:
+            db.session.execute(text("ALTER TABLE users ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE"))
+            db.session.commit()
+        if "created_at" not in columns:
+            db.session.execute(text("ALTER TABLE users ADD COLUMN created_at TIMESTAMP"))
+            db.session.commit()
+        if "updated_at" not in columns:
+            db.session.execute(text("ALTER TABLE users ADD COLUMN updated_at TIMESTAMP"))
             db.session.commit()
 
 

@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% set title = ("Editar Bem" if asset else "Novo Bem") ~ " • Sistema Patrimonial" %}
+{% set title = ("Editar patrimônio" if asset else "Novo patrimônio") ~ " • Sistema Patrimonial" %}
 {% block content %}
 <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
   <div>
-    <h1 class="page-title mb-1">{{ "Editar Bem" if asset else "Novo Bem" }}</h1>
+    <h1 class="page-title mb-1">{{ asset.internal_code if asset else "Novo bem" }}</h1>
     <div class="text-muted">
       {% if asset %}
-        {{ asset.internal_code }} • Barras: {{ asset.barcode }}
+        {{ 'Visualização do item cadastrado.' if read_only else 'Edite os dados do item cadastrado.' }}
       {% else %}
         Preencha os dados para cadastrar um novo item em {{ church_settings.church_name if church_settings else current_church.name }}.
       {% endif %}
@@ -26,115 +26,123 @@
       <div class="panel-title">Dados do patrimônio</div>
       <div class="p-3">
         <form method="post" enctype="multipart/form-data">
-          {% if not asset %}
-          <div class="row g-2">
-            <div class="col-12 col-md-6">
-              <label class="form-label">Código de barras *</label>
-              <input class="form-control" name="barcode" value="{{ preset_barcode or '' }}" placeholder="Ex: 789000000001" required>
+          <fieldset {% if read_only %}disabled{% endif %}>
+            {% if not asset %}
+            <div class="row g-2">
+              <div class="col-12 col-md-6">
+                <label class="form-label">Código de barras *</label>
+                <input class="form-control" name="barcode" value="{{ preset_barcode or '' }}" placeholder="Ex: 789000000001" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Status</label>
+                <select class="form-select" name="status">
+                  <option value="ativo">Ativo</option>
+                  <option value="manutencao">Manutenção</option>
+                  <option value="baixado">Baixado</option>
+                </select>
+              </div>
             </div>
-            <div class="col-12 col-md-6">
-              <label class="form-label">Status</label>
-              <select class="form-select" name="status">
-                <option value="ativo">Ativo</option>
-                <option value="manutencao">Manutenção</option>
-                <option value="baixado">Baixado</option>
-              </select>
-            </div>
-          </div>
-          <hr class="my-3">
-          {% endif %}
-
-          <div class="row g-2">
-            {% if asset %}
-            <div class="col-12 col-md-6">
-              <label class="form-label">Código de barras *</label>
-              <input class="form-control" name="barcode" value="{{ asset.barcode }}" required>
-            </div>
-            <div class="col-12 col-md-6">
-              <label class="form-label">Status</label>
-              <select class="form-select" name="status">
-                <option value="ativo" {{ 'selected' if asset.status=='ativo' else '' }}>Ativo</option>
-                <option value="manutencao" {{ 'selected' if asset.status=='manutencao' else '' }}>Manutenção</option>
-                <option value="baixado" {{ 'selected' if asset.status=='baixado' else '' }}>Baixado</option>
-              </select>
-            </div>
+            <hr class="my-3">
             {% endif %}
 
-            <div class="col-12">
-              <label class="form-label">Descrição *</label>
-              <input class="form-control" name="description" value="{{ asset.description if asset else '' }}" required>
-            </div>
+            <div class="row g-2">
+              {% if asset %}
+              <div class="col-12 col-md-6">
+                <label class="form-label">Código de barras *</label>
+                <input class="form-control" name="barcode" value="{{ asset.barcode }}" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Status</label>
+                <select class="form-select" name="status">
+                  <option value="ativo" {{ 'selected' if asset.status=='ativo' else '' }}>Ativo</option>
+                  <option value="manutencao" {{ 'selected' if asset.status=='manutencao' else '' }}>Manutenção</option>
+                  <option value="baixado" {{ 'selected' if asset.status=='baixado' else '' }}>Baixado</option>
+                </select>
+              </div>
+              {% endif %}
 
-            <div class="col-12 col-md-4">
-              <label class="form-label">Marca</label>
-              <input class="form-control" name="brand" value="{{ asset.brand if asset else '' }}">
-            </div>
-            <div class="col-12 col-md-4">
-              <label class="form-label">Modelo</label>
-              <input class="form-control" name="model" value="{{ asset.model if asset else '' }}">
-            </div>
-            <div class="col-12 col-md-4">
-              <label class="form-label">Número de série</label>
-              <input class="form-control" name="serial_number" value="{{ asset.serial_number if asset else '' }}">
-            </div>
+              <div class="col-12">
+                <label class="form-label">Descrição *</label>
+                <input class="form-control" name="description" value="{{ asset.description if asset else '' }}" required>
+              </div>
 
-            <div class="col-12 col-md-4">
-              <label class="form-label">Valor de compra (R$)</label>
-              <input class="form-control" name="purchase_value" value="{{ asset.purchase_value if asset else '0' }}" placeholder="5000,00">
-            </div>
-            <div class="col-12 col-md-4">
-              <label class="form-label">Data de aquisição</label>
-              <input type="date" class="form-control" name="purchase_date" value="{{ asset.purchase_date.isoformat() if asset else '' }}">
-            </div>
-            <div class="col-12 col-md-4">
-              <label class="form-label">Categoria do item</label>
-              <select class="form-select" name="is_donation">
-                <option value="0" {{ 'selected' if asset and not asset.is_donation else '' }}>Próprio</option>
-                <option value="1" {{ 'selected' if asset and asset.is_donation else '' }}>Doação</option>
-              </select>
-            </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label">Marca</label>
+                <input class="form-control" name="brand" value="{{ asset.brand if asset else '' }}">
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label">Modelo</label>
+                <input class="form-control" name="model" value="{{ asset.model if asset else '' }}">
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label">Número de série</label>
+                <input class="form-control" name="serial_number" value="{{ asset.serial_number if asset else '' }}">
+              </div>
 
-            <div class="col-12 col-md-6">
-              <label class="form-label">Centro de custo</label>
-              <input class="form-control" name="cost_center" value="{{ asset.cost_center if asset else '' }}" placeholder="TI / Produção / Vendas...">
-            </div>
-            <div class="col-12 col-md-6">
-              <label class="form-label">Localização</label>
-              <input class="form-control" name="location" value="{{ asset.location if asset else '' }}" placeholder="Sala / Setor / Unidade...">
-            </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label">Valor de compra (R$)</label>
+                <input class="form-control" name="purchase_value" value="{{ asset.purchase_value if asset else '0' }}" placeholder="5000,00">
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label">Data de aquisição</label>
+                <input type="date" class="form-control" name="purchase_date" value="{{ asset.purchase_date.isoformat() if asset else '' }}">
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label">Categoria do item</label>
+                <select class="form-select" name="is_donation">
+                  <option value="0" {{ 'selected' if asset and not asset.is_donation else '' }}>Próprio</option>
+                  <option value="1" {{ 'selected' if asset and asset.is_donation else '' }}>Doação</option>
+                </select>
+              </div>
 
-            <div class="col-12 col-md-6">
-              <label class="form-label">Responsável</label>
-              <input class="form-control" name="responsible" value="{{ asset.responsible if asset else '' }}">
-            </div>
-            <div class="col-12 col-md-6">
-              <label class="form-label">Imagem do item</label>
-              <input type="file" class="form-control" name="item_image" accept=".png,.jpg,.jpeg,.webp">
-            </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Centro de custo</label>
+                <input class="form-control" name="cost_center" value="{{ asset.cost_center if asset else '' }}" placeholder="TI / Produção / Vendas...">
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Localização</label>
+                <input class="form-control" name="location" value="{{ asset.location if asset else '' }}" placeholder="Sala / Setor / Unidade...">
+              </div>
 
-            <div class="col-12 col-md-4">
-              <label class="form-label">Vida útil (anos)</label>
-              <input class="form-control" name="useful_life_years" value="{{ asset.useful_life_years if asset else '5' }}">
-            </div>
-            <div class="col-12 col-md-4">
-              <label class="form-label">Taxa de depreciação (%/ano)</label>
-              <input class="form-control" name="depreciation_rate" value="{{ asset.depreciation_rate if asset else '20' }}">
-            </div>
-          </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Responsável</label>
+                <input class="form-control" name="responsible" value="{{ asset.responsible if asset else '' }}">
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Imagem do item</label>
+                <input type="file" class="form-control" name="item_image" accept=".png,.jpg,.jpeg,.webp">
+              </div>
 
-          {% if asset %}
-          <div class="d-flex flex-wrap gap-2 align-items-center mt-3">
-            <button class="btn btn-orange" type="submit">Salvar alterações</button>
-            <button class="btn btn-outline-orange" name="mark_inventoried" value="1" type="submit">Marcar como inventariado hoje</button>
-          </div>
-          {% else %}
-          <div class="mt-3">
-            <button class="btn btn-orange" type="submit">Cadastrar bem</button>
-          </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label">Vida útil (anos)</label>
+                <input class="form-control" name="useful_life_years" value="{{ asset.useful_life_years if asset else '5' }}">
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label">Taxa de depreciação (%/ano)</label>
+                <input class="form-control" name="depreciation_rate" value="{{ asset.depreciation_rate if asset else '20' }}">
+              </div>
+            </div>
+          </fieldset>
+
+          {% if asset and read_only %}
+          <div class="alert alert-info mt-3 mb-0">Seu perfil é <b>Visualizador</b>. Você pode consultar os dados, mas não pode editar, baixar ou excluir itens.</div>
+          {% endif %}
+
+          {% if not read_only %}
+            {% if asset %}
+            <div class="d-flex flex-wrap gap-2 align-items-center mt-3">
+              <button class="btn btn-orange" type="submit">Salvar alterações</button>
+              <button class="btn btn-outline-orange" name="mark_inventoried" value="1" type="submit">Marcar como inventariado hoje</button>
+            </div>
+            {% else %}
+            <div class="mt-3">
+              <button class="btn btn-orange" type="submit">Cadastrar bem</button>
+            </div>
+            {% endif %}
           {% endif %}
         </form>
 
-        {% if asset %}
+        {% if asset and not read_only %}
         <form action="{{ url_for('main.patrimonio_deactivate', asset_id=asset.id) }}" method="post" class="mt-3">
           <button class="btn btn-outline-dark" type="submit">Baixar bem</button>
         </form>

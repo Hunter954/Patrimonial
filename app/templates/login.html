@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% set title = "Login • Sistema Patrimonial" %}
+
+{% block content %}
+<div class="login-page">
+  <div class="login-shell">
+    <div class="text-center mb-4">
+      {% if login_logo and login_logo.logo_path %}
+        <img class="login-logo mb-3" src="{{ url_for('main.uploaded_file', relative_path=login_logo.logo_path) }}" alt="Logo da igreja">
+      {% else %}
+        <div class="login-logo-fallback mx-auto mb-3">I</div>
+      {% endif %}
+      <div class="selector-eyebrow">Sistema patrimonial</div>
+      <h1 class="selector-title login-title">Acesse sua conta</h1>
+      <p class="selector-subtitle">Entre com usuário e senha para acessar o patrimônio da igreja.</p>
+    </div>
+
+    <div class="card login-card">
+      <div class="panel-title">Login</div>
+      <div class="p-4">
+        <form method="post" class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Usuário</label>
+            <input class="form-control form-control-lg" name="username" placeholder="Digite seu usuário" required autofocus>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Senha</label>
+            <input type="password" class="form-control form-control-lg" name="password" placeholder="Digite sua senha" required>
+          </div>
+          <div class="col-12 d-grid">
+            <button class="btn btn-orange btn-lg" type="submit">Entrar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

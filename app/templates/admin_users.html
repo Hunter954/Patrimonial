@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% set title = "Usuários • Sistema Patrimonial" %}
+{% block content %}
+<div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
+  <div>
+    <h1 class="page-title mb-1">Usuários do sistema</h1>
+    <div class="text-muted">Cadastre novos acessos e controle quem é administrador ou visualizador.</div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-5">
+    <div class="card panel-card">
+      <div class="panel-title">Novo usuário</div>
+      <div class="p-3">
+        <form method="post" class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Usuário</label>
+            <input class="form-control" name="username" placeholder="Ex: secretaria" required>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Senha</label>
+            <input type="password" class="form-control" name="password" placeholder="Mínimo 4 caracteres" required>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Nível de acesso</label>
+            <select class="form-select" name="role">
+              <option value="viewer">Visualizador</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="col-12 d-grid">
+            <button class="btn btn-orange" type="submit">Cadastrar usuário</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-7">
+    <div class="card panel-card">
+      <div class="panel-title">Usuários cadastrados</div>
+      <div class="table-responsive">
+        <table class="table table-custom mb-0">
+          <thead>
+            <tr>
+              <th>Usuário</th>
+              <th>Nível</th>
+              <th>Status</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ user.username }}</div>
+                <div class="text-muted small">Criado em {{ user.created_at.strftime('%d/%m/%Y %H:%M') if user.created_at else '-' }}</div>
+              </td>
+              <td>
+                <span class="badge {{ 'text-bg-warning' if user.role == 'admin' else 'text-bg-light border' }}">{{ 'Admin' if user.role == 'admin' else 'Visualizador' }}</span>
+              </td>
+              <td>
+                <span class="badge {{ 'badge-soft-success' if user.is_active else 'badge-soft-muted' }}">{{ 'Ativo' if user.is_active else 'Inativo' }}</span>
+              </td>
+              <td class="text-end">
+                <div class="d-flex flex-wrap justify-content-end gap-2">
+                  <form method="post" action="{{ url_for('main.admin_users_toggle', user_id=user.id) }}">
+                    <button class="btn btn-sm btn-outline-orange" type="submit">{{ 'Desativar' if user.is_active else 'Ativar' }}</button>
+                  </form>
+                  <form method="post" action="{{ url_for('main.admin_users_password', user_id=user.id) }}" class="d-flex gap-2">
+                    <input class="form-control form-control-sm" type="password" name="new_password" placeholder="Nova senha" required>
+                    <button class="btn btn-sm btn-outline-secondary" type="submit">Salvar senha</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-muted p-4">Nenhum usuário cadastrado.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
