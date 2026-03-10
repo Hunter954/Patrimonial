@@ -13,7 +13,7 @@
   <div class="col-12 col-xl-3">
     <div class="card kpi-card">
       <div class="kpi-icon">📦</div>
-      <div>
+      <div class="kpi-content">
         <div class="kpi-label">Total de Bens</div>
         <div class="kpi-value">{{ "{:,}".format(total_assets).replace(",", ".") }}</div>
       </div>
@@ -23,7 +23,7 @@
   <div class="col-12 col-xl-3">
     <div class="card kpi-card">
       <div class="kpi-icon">🎁</div>
-      <div>
+      <div class="kpi-content">
         <div class="kpi-label">Itens de Doação</div>
         <div class="kpi-value">{{ donation_count }}</div>
       </div>
@@ -33,7 +33,7 @@
   <div class="col-12 col-xl-3">
     <div class="card kpi-card">
       <div class="kpi-icon">💰</div>
-      <div>
+      <div class="kpi-content">
         <div class="kpi-label">Valor do Patrimônio</div>
         <div class="kpi-value">{{ currency_br(total_value) }}</div>
       </div>
@@ -43,9 +43,12 @@
   <div class="col-12 col-xl-3">
     <div class="card kpi-card">
       <div class="kpi-icon">🛠️</div>
-      <div>
+      <div class="kpi-content">
         <div class="kpi-label">Em Manutenção</div>
-        <div class="kpi-value"><span class="text-orange">{{ maintenance_count }}</span> Itens</div>
+        <div class="kpi-value">
+          <span class="text-orange">{{ maintenance_count }}</span>
+          <span class="kpi-value-suffix">Itens</span>
+        </div>
       </div>
     </div>
   </div>
