@@ -1,6 +1,7 @@
 from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 import io
+import re
 from functools import wraps
 from pathlib import Path
 
@@ -49,6 +50,26 @@ def parse_decimal(value: str, default: str = "0") -> Decimal:
     except (InvalidOperation, ValueError):
         return Decimal(default)
 
+
+def parse_int(value: str, default: int = 5) -> int:
+    raw = (value or "").strip()
+    if not raw:
+        return default
+    if not raw.isdigit():
+        raise ValueError("Informe apenas números inteiros.")
+    return max(int(raw), 1)
+
+
+def validate_numeric_fields(form) -> list[str]:
+    errors = []
+    integer_fields = {
+        "useful_life_years": "Vida útil",
+    }
+    for field_name, label in integer_fields.items():
+        raw = (form.get(field_name) or "").strip()
+        if raw and not raw.isdigit():
+            errors.append(f"{label} permite apenas números. Não escreva textos como 'anos' ou '5 à 8 anos'.")
+    return errors
 
 def next_internal_code(church_key: str):
     prefix = "FOZ" if church_key == "foz" else "PY"
@@ -396,6 +417,12 @@ def patrimonio_new():
             flash("Já existe um item com esse código de barras.", "danger")
             return redirect(url_for("main.patrimonio_new", barcode=barcode))
 
+        numeric_errors = validate_numeric_fields(request.form)
+        if numeric_errors:
+            for message in numeric_errors:
+                flash(message, "danger")
+            return redirect(url_for("main.patrimonio_new", barcode=barcode))
+
         item_image = request.files.get("item_image")
         image_path = None
         if item_image and item_image.filename:
@@ -419,7 +446,7 @@ def patrimonio_new():
             cost_center=(request.form.get("cost_center") or "").strip() or None,
             location=(request.form.get("location") or "").strip() or None,
             responsible=(request.form.get("responsible") or "").strip() or None,
-            useful_life_years=int(request.form.get("useful_life_years") or 5),
+            useful_life_years=parse_int(request.form.get("useful_life_years"), 5),
             depreciation_rate=parse_decimal(request.form.get("depreciation_rate"), "20"),
             status=(request.form.get("status") or "ativo"),
         )
@@ -478,7 +505,13 @@ def patrimonio_edit(asset_id):
                 return redirect(url_for("main.patrimonio_edit", asset_id=asset.id))
             asset.image_path = image_path
 
-        asset.useful_life_years = int(request.form.get("useful_life_years") or asset.useful_life_years)
+        numeric_errors = validate_numeric_fields(request.form)
+        if numeric_errors:
+            for message in numeric_errors:
+                flash(message, "danger")
+            return redirect(url_for("main.patrimonio_edit", asset_id=asset.id))
+
+        asset.useful_life_years = parse_int(request.form.get("useful_life_years"), asset.useful_life_years)
         asset.depreciation_rate = parse_decimal(request.form.get("depreciation_rate"), "20")
         asset.status = (request.form.get("status") or asset.status)
 
